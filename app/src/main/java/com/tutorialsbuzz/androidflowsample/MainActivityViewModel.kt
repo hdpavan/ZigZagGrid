@@ -1,6 +1,8 @@
 package com.tutorialsbuzz.androidflowsample
 
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.tutorialsbuzz.androidflowsample.model.Tiles
 import com.tutorialsbuzz.androidflowsample.utils.Constanst
@@ -9,43 +11,54 @@ class MainActivityViewModel : ViewModel() {
 
     private val TAG = "MainActivityViewModel"
 
-    fun getTilesList(count: Int): List<Tiles> {
+    private var _tilesList: MutableLiveData<Result> = MutableLiveData()
+    val tilesList: LiveData<Result> = _tilesList
 
-        val tilesList = mutableListOf<Tiles>()
+    fun getTilesList(count: Int?) {
 
-        val reversedTilesList = mutableListOf<Tiles>()
+        if (count == 0 || count==null) {
+            _tilesList.postValue(Result.Error("Error Inflating"))
+        }else {
 
-        val range = (0..count).toMutableList()
+            val tiles = mutableListOf<Tiles>()
 
-        range.forEach {
+            val reversedTilesList = mutableListOf<Tiles>()
 
-            if (it != count)
-                if ((it / Constanst.columnSpan) % 2 == 0) {
-                    Log.d(TAG, "odd row")
-                    if (!reversedTilesList.isEmpty()) {
-                        tilesList.addAll(reversedTilesList.reversed())
-                        reversedTilesList.clear()
+            val range = (0..count).toMutableList()
+
+            range.forEach {
+
+                if (it != count)
+                    if ((it / Constanst.columnSpan) % 2 == 0) {
+                        Log.d(TAG, "odd row")
+                        if (!reversedTilesList.isEmpty()) {
+                            tiles.addAll(reversedTilesList.reversed())
+                            reversedTilesList.clear()
+                        }
+                        tiles.add(Tiles((it + 1).toString()))
+
+                    } else {
+                        Log.d(TAG, "even row")
+                        // reverse
+                        reversedTilesList.add(Tiles((it + 1).toString()))
+
                     }
-                    tilesList.add(Tiles((it + 1).toString()))
+            }
 
-                } else {
-                    Log.d(TAG, "even row")
-                    // reverse
-                    reversedTilesList.add(Tiles((it + 1).toString()))
+            Log.d(
+                TAG,
+                "shouldReverse: " + reversedTilesList.isEmpty() + "  " + reversedTilesList.toString()
+            )
 
-                }
+            if (!reversedTilesList.isEmpty()) {
+                tiles.addAll(reversedTilesList.reversed())
+                reversedTilesList.clear()
+            }
+
+            _tilesList.postValue(Result.Success(tiles))
         }
 
-        Log.d(
-            TAG,
-            "shouldReverse: " + reversedTilesList.isEmpty() + "  " + reversedTilesList.toString()
-        )
 
-        if (!reversedTilesList.isEmpty()) {
-            tilesList.addAll(reversedTilesList.reversed())
-            reversedTilesList.clear()
-        }
-        return tilesList
     }
 
     fun reverse(arr: MutableList<Int>, n: Int, k: Int): MutableList<Int> {

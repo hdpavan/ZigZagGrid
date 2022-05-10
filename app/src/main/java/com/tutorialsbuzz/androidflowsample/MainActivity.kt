@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
+import com.google.android.material.snackbar.Snackbar
 import com.tutorialsbuzz.androidflowsample.databinding.ActivityMainBinding
 import com.tutorialsbuzz.androidflowsample.model.Tiles
 import com.tutorialsbuzz.androidflowsample.utils.Constanst
@@ -33,9 +34,29 @@ class MainActivity : AppCompatActivity() {
 
         binding.button.setOnClickListener {
             val count = binding.inputTiles.text.toString()
-            gridAdapter.updateItems(mainActivityViewModel.getTilesList(count.toInt()))
+
+            mainActivityViewModel.getTilesList(count.toIntOrNull())
         }
 
+        setObserver()
+    }
+
+    private fun setObserver() {
+        mainActivityViewModel.tilesList.observe(this) { responseData ->
+            when (responseData) {
+                is Result.Success -> {
+                    gridAdapter.updateItems(responseData.listOfTiles)
+                }
+
+                is Result.Error -> {
+                    Snackbar.make(
+                        binding.recyclerView.rootView,
+                        responseData.error,
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
     }
 
 
